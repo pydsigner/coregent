@@ -29,8 +29,6 @@ class Bitmask:
         if mask_key in cls._mask_cache:
             return cls._mask_cache[mask_key]
 
-        #print('here', texture)
-
         # Every 4th byte since we're using the alpha from an rgba bytestring
         pixels = texture.pixels[3::4]
 
