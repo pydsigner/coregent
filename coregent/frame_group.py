@@ -5,14 +5,14 @@ support for detecting frame length.
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Optional, Union
 
 import glob
 import os
 import re
 
 
-__all__ = ['read_frame_group']
+__all__ = ['read_frame_group', 'read_frame_groups']
 
 
 def read_frame_group(template: str, times: Union[float, list[float]] = None) -> list[tuple[float, str]]:
@@ -49,3 +49,10 @@ def read_frame_group(template: str, times: Union[float, list[float]] = None) -> 
         return [(times[i], m.group()) for i, m in enumerate(frames)]
     else:
         return [(int(m.group('time')) / 1000, m.group()) for m in frames]
+
+
+def read_frame_groups(base: str, groups: dict[str, tuple[str, Optional[float]]]):
+    return {
+        k: read_frame_group(os.path.join(base, p), t)
+         for k, (p, t) in groups.items()
+    }
