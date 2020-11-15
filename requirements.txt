@@ -1,0 +1,4 @@
+kivy[base]>=2.0.0rc4 --pre
+
+pylint>=2.6.0
+pytest>=6.1.2
