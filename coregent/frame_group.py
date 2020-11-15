@@ -15,7 +15,7 @@ import re
 __all__ = ['read_frame_group', 'read_frame_groups']
 
 
-def read_frame_group(template: str, times: Union[float, list[float]] = None) -> list[tuple[float, str]]:
+def read_frame_group(template: str, times: Union[None, float, list[float]] = None) -> list[tuple[float, str]]:
     # Make sure our template works across operating systems since glob
     # paths are localized
     template = os.path.normpath(template)
@@ -40,9 +40,7 @@ def read_frame_group(template: str, times: Union[float, list[float]] = None) -> 
 
     frames.sort(key=lambda m: int(m.group('index')))
 
-    if isinstance(times, int):
-        times = [times / 1000] * len(frames)
-    elif isinstance(times, float):
+    if isinstance(times, float):
         times = [times] * len(frames)
 
     if times:
