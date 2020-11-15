@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Union
 
 import glob
+import os
 import re
 
 
@@ -15,16 +16,25 @@ __all__ = ['read_frame_group']
 
 
 def read_frame_group(template: str, times: Union[float, list[float]] = None) -> list[tuple[float, str]]:
-    # Allow parentheses in filenames
-    re_ready = template.replace('(', '\\(').replace(')', '\\)')
-    regex = re.compile(re_ready.format(index=r'(?P<index>\d+)', time=r'(?P<time>\d+)'))
+    # Make sure our template works across operating systems since glob
+    # paths are localized
+    template = os.path.normpath(template)
+    # We take in a format string, but we need to protect it from regex escaping
+    re_pattern = template.format(index='%index%', time='%time%')
+    # Escape parentheses, backslashes, and periods, in particular
+    re_pattern = re.escape(re_pattern)
+    # Inject our regular expressions now that we've escaped everything else
+    re_pattern = re_pattern.replace('%index%', r'(?P<index>\d+)')
+    re_pattern = re_pattern.replace('%time%', r'(?P<time>\d+)')
+    # Finally, compile the regex for use!
+    re_pattern = re.compile(re_pattern)
+    # Our glob pattern is much simpler to construct
+    glob_pattern = template.format(index='*', time='*')
 
     frames = []
-    files = glob.glob(template.format(index='*', time='*'))
+    files = glob.glob(glob_pattern)
     for file in files:
-        # Make sure our template works across operating systems since glob
-        # paths are localized
-        m = regex.match(file.replace('\\', '/'))
+        m = re_pattern.match(file)
         if m:
             frames.append(m)
 
