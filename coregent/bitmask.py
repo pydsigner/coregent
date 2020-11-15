@@ -24,19 +24,16 @@ class Bitmask:
         self.data: list[int] = data.copy()
 
     @classmethod
-    def create_mask(cls, texture, threshold=128, scale=1):
-        mask_key = (texture, threshold, scale)
+    def create_mask(cls, source_id, pixels, size, threshold=128, scale=1):
+        mask_key = (source_id, threshold, scale)
         if mask_key in cls._mask_cache:
             return cls._mask_cache[mask_key]
-
-        # Every 4th byte since we're using the alpha from an rgba bytestring
-        pixels = texture.pixels[3::4]
 
         # cache some values
         _range = range
         _min = min
         adjusted_threshold = threshold * scale**2
-        h, w = texture.height, texture.width
+        h, w = size
         # Pre-calculate the (starting) x indices and the cooresponding bit
         # magnitudes since they'll be re-used for every row.
         x_vals = _range(0, w, scale)

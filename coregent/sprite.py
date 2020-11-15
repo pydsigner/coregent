@@ -16,7 +16,20 @@ from kivy.vector import Vector
 from .bitmask import Bitmask
 
 
-__all__ = ['Collidable', 'AnimatedCollidable', 'Sprite']
+__all__ = ['bitmask_from_texture', 'Collidable', 'AnimatedCollidable', 'Sprite']
+
+
+def extract_alpha_bits(texture: Texture):
+    return texture.pixels[3::4]
+
+
+def bitmask_from_texture(texture: Texture, **kw):
+    return Bitmask.create_mask(
+        texture.id,
+        extract_alpha_bits(texture),
+        texture.size,
+        **kw
+    )
 
 
 class LoaderCache(dict):
@@ -42,7 +55,7 @@ class Collidable(Widget):
             self.bitmasks.update({k: self._create_mask(k) for k in self.frames})
 
     def _create_mask(self, key):
-        return Bitmask.create_mask(self.frames[key], **self.bitmask_args)
+        return bitmask_from_texture(self.frames[key], **self.bitmask_args)
 
     def collide_bitmask(self, widget: 'Collidable', offset: tuple[float, float]) -> bool:
         return self.bitmasks[self.current_frame].intersects(widget.bitmasks[widget.current_frame], offset)
