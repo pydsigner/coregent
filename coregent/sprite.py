@@ -35,6 +35,7 @@ class Collidable(Widget):
     bitmask_args = {'scale': 1}
 
     def __init__(self, lazy_mask: bool = False, **kw):
+        self.bitmask_args: dict = kw.pop('bitmask_args', self.bitmask_args)
         super().__init__(**kw)
         if lazy_mask:
             self.bitmasks: dict[Any, Bitmask] = LoaderCache(self._create_mask)
