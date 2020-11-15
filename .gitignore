@@ -3,3 +3,7 @@ __pycache__/
 venv/
 .venv/
 .vscode/
+dist/
+build/
+*.egg-info/
+.pypirc
