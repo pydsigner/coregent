@@ -33,7 +33,7 @@ class Bitmask:
         _range = range
         _min = min
         adjusted_threshold = threshold * scale**2
-        h, w = size
+        w, h = size
         # Pre-calculate the (starting) x indices and the cooresponding bit
         # magnitudes since they'll be re-used for every row.
         x_vals = _range(0, w, scale)
