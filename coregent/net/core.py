@@ -3,7 +3,6 @@ import collections.abc
 import socket
 
 
-
 __all__ = ['get_socket_type', 'get_server_socket', 'get_client_socket',
            'SocketReader', 'SocketWriter', 'JSONReader', 'JSONWriter']
 

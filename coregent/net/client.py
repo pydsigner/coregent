@@ -108,8 +108,6 @@ class ConnectionManager:
         # Now that the new connection has been established, mark it as usable.
         self.connections[name] = new_conn
 
-
-
     def close_connection(self, name):
         """
         Close the connection with the specified @name. Does not discard any
