@@ -5,7 +5,8 @@ import socket
 import _thread
 from typing import Any, Callable, Optional, Union
 
-from .networking import get_client_socket, JSONReader, JSONWriter, SocketReader, SocketWriter
+from .core import get_client_socket, SocketReader, SocketWriter
+from .json import JSONReader, JSONWriter
 
 
 __all__ = ['Client', 'ConsoleClient', 'ConnectionManager']
