@@ -25,6 +25,7 @@ setuptools.setup(
     description='Co-regent: a toolkit for building Python games, especially with Kivy',
     long_description=read_description(),
     long_description_content_type='text/markdown',
+    license_files=['LICENSE'],
     url='https://github.com/neurite-interactive/coregent',
     packages=['coregent'],
     classifiers=[
