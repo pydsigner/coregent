@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-import argparse
 import socket
 import _thread
 from typing import Any, Callable, Optional, Union
 
 from .core import get_client_socket, SocketReader, SocketWriter
-from .json import JSONReader, JSONWriter
 
 
-__all__ = ['Client', 'ConsoleClient', 'ConnectionManager']
+__all__ = ['Client', 'ConnectionManager']
 
 
 class Client:
-    reader_factory: Callable[[socket.socket], SocketReader] = JSONReader
-    writer_factory: Callable[[socket.socket], SocketWriter] = JSONWriter
+    reader_factory: Callable[[socket.socket], SocketReader]
+    writer_factory: Callable[[socket.socket], SocketWriter]
 
     def __init__(self,
                  conn_info: Union[tuple[str, int], tuple[str, int, socket.AddressFamily]],
@@ -71,51 +69,13 @@ class Client:
         self.writer.close()
 
 
-class ConsoleClient(Client):
-    """
-    An example CLI Client, capable of sending and receiving simple chat
-    messages and logging raw messages of other types.
-    """
-
-    def __init__(self, conn_info):
-        super().__init__(conn_info, self.display_message)
-
-    def display_message(self, message):
-        """
-        Display a single Python dictionary pre-decoded from JSON.
-        """
-        if message['type'] != 'chat':
-            print(f'Unknown message: {message}')
-
-        if message['source'] == 'server':
-            print(f'!! {message["msg"]}')
-        else:
-            print(f'{message["user"]}: {message["msg"]}')
-
-    def run(self):
-        """
-        Connect to the configured server and run the interactive mainloop.
-        """
-        self.start()
-
-        while True:
-            message = input(' -> ')
-            if message.lower().startswith('bye'):
-                self.close()
-                break
-
-            self.send_message({
-                'type': 'chat',
-                'msg': message
-            })
-
-
 class ConnectionManager:
     """
     Create and manage labeled connections.
     """
 
-    def __init__(self):
+    def __init__(self, client_factory: Callable[..., Client] = Client):
+        self.client_factory = client_factory
         self.connections = {}
         self.listeners = {}
 
@@ -136,7 +96,7 @@ class ConnectionManager:
         # We want to support registering multiple listeners for a single
         # connection, so we defer resolution of the callbacks to the last
         # moment.
-        new_conn = Client(conn_info, lambda m: self._handle_message(name, m))
+        new_conn = self.client_factory(conn_info, lambda m: self._handle_message(name, m))
         # Start the client mainloop.
         new_conn.start()
 
@@ -175,12 +135,3 @@ class ConnectionManager:
     def _handle_message(self, name, message):
         for listener in self.listeners[name]:
             listener(message)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--hostname', default='localhost')
-    parser.add_argument('-p', '--port', type=int, default=40001)
-    args = parser.parse_args()
-
-    ConsoleClient((args.hostname, args.port)).run()
