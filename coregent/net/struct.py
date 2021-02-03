@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import itertools
 import socket
 import struct
 from typing import Optional
@@ -23,8 +24,8 @@ class Parameter:
     def __init__(self, code: str):
         self.struct_format = code
 
-    def parse(self, reader, remainder):
-        return remainder.pop(0)
+    def parse(self, reader, parsed_values):
+        return next(parsed_values)
 
     def pack(self, value):
         return (value,), []
@@ -35,10 +36,8 @@ class MultiParameter(Parameter):
         super().__init__(code)
         self.size = size if size is not None else len(code)
 
-    def parse(self, reader, remainder):
-        values = remainder[:self.size]
-        del remainder[:self.size]
-        return values
+    def parse(self, reader, parsed_values):
+        return tuple(itertools.islice(parsed_values, self.size))
 
     def pack(self, value):
         return value, []
@@ -48,8 +47,8 @@ class UnicodeParameter(Parameter):
     def __init__(self, code: str):
         super().__init__(code)
 
-    def parse(self, reader, remainder):
-        size = super().parse(reader, remainder)
+    def parse(self, reader, parsed_values):
+        size = super().parse(reader, parsed_values)
         return reader.get_bytes(size).decode()
 
     def pack(self, value):
@@ -115,7 +114,7 @@ class Message:
 
     def deserialize(self, reader: StructReader):
         initial_bytes = reader.get_bytes(self.struct_format.size)
-        struct_args = list(self.struct_format.unpack(initial_bytes))
+        struct_args = iter(self.struct_format.unpack(initial_bytes))
         return self.factory(
             self.message_id,
             *(
