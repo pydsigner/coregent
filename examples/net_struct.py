@@ -48,13 +48,13 @@ class StructClient(Client):
         super().__init__(conn_info, self.display_message)
 
     def display_message(self, message):
-        if message.message_id == M_WELCOME.message_id:
+        if message == M_WELCOME:
             print(f'({message.time}) MOTD: {message.msg}')
-        elif message.message_id == M_CONNECT.message_id:
+        elif message == M_CONNECT:
             print(f'* {message.user} has joined the chat')
-        elif message.message_id == M_DISCONNECT.message_id:
+        elif message == M_DISCONNECT:
             print(f'* {message.user} has left the chat')
-        elif message.message_id == M_SERVER_CHAT.message_id:
+        elif message == M_SERVER_CHAT:
             if message.source == 'server':
                 print(f'!! ({message.time}) {message.msg}')
             else:
@@ -145,7 +145,7 @@ class StructServer:
         if not username_msg:
             return
 
-        assert username_msg.message_id == M_CLIENT_CHAT.message_id
+        assert username_msg == M_CLIENT_CHAT
         username = username_msg.msg
 
         if username in self.player_map:
@@ -192,7 +192,7 @@ class StructServer:
         )
 
     def player_message(self, username, message):
-        if message.message_id != M_CLIENT_CHAT.message_id:
+        if message != M_CLIENT_CHAT:
             print(f'Unexpected message: {message}')
 
         self.forward_message(

@@ -92,6 +92,12 @@ class Message:
     def __call__(self, **kw):
         return self.factory(self.message_id, **kw)
 
+    def __eq__(self, other):
+        try:
+            return self.message_id == other.message_id
+        except AttributeError:
+            return super().__eq__(other)
+
     def compile_parameters(self):
         _f = ''.join(p.struct_format for p in self.parameters.values())
         return struct.Struct('!' + _f)
