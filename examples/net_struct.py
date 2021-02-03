@@ -11,33 +11,33 @@ from coregent.net.client import Client
 from coregent.net.core import get_server_socket
 
 
-C_CONNECT = sn.Command(
+M_CONNECT = sn.Message(
     1, 'Connect',
     user=sn.P_UNICODE_BYTE
 )
-C_WELCOME = sn.Command(
+M_WELCOME = sn.Message(
     2, 'Welcome',
     time=sn.P_DOUBLE,
     msg=sn.P_UNICODE_LONG
 )
-C_DISCONNECT = sn.Command(
+M_DISCONNECT = sn.Message(
     3, 'Disconnect',
     user=sn.P_UNICODE_BYTE
 )
-C_CLIENT_CHAT = sn.Command(
+M_CLIENT_CHAT = sn.Message(
     1000, 'ClientChat',
     msg=sn.P_UNICODE_LONG
 )
-C_SERVER_CHAT = sn.Command(
+M_SERVER_CHAT = sn.Message(
     1001, 'ServerChat',
     time=sn.P_DOUBLE,
     source=sn.P_UNICODE_BYTE,
     msg=sn.P_UNICODE_LONG
 )
-COMMANDS = [C_CONNECT, C_WELCOME, C_DISCONNECT, C_CLIENT_CHAT, C_SERVER_CHAT]
+MESSAGE_TYPES = [M_CONNECT, M_WELCOME, M_DISCONNECT, M_CLIENT_CHAT, M_SERVER_CHAT]
 
-get_struct_reader = sn.StructReader.get_factory(COMMANDS)
-get_struct_writer = sn.StructWriter.get_factory(COMMANDS)
+get_struct_reader = sn.StructReader.get_factory(MESSAGE_TYPES)
+get_struct_writer = sn.StructWriter.get_factory(MESSAGE_TYPES)
 
 
 class StructClient(Client):
@@ -48,13 +48,13 @@ class StructClient(Client):
         super().__init__(conn_info, self.display_message)
 
     def display_message(self, message):
-        if message.command_id == C_WELCOME.command_id:
+        if message.message_id == M_WELCOME.message_id:
             print(f'({message.time}) MOTD: {message.msg}')
-        elif message.command_id == C_CONNECT.command_id:
+        elif message.message_id == M_CONNECT.message_id:
             print(f'* {message.user} has joined the chat')
-        elif message.command_id == C_DISCONNECT.command_id:
+        elif message.message_id == M_DISCONNECT.message_id:
             print(f'* {message.user} has left the chat')
-        elif message.command_id == C_SERVER_CHAT.command_id:
+        elif message.message_id == M_SERVER_CHAT.message_id:
             if message.source == 'server':
                 print(f'!! ({message.time}) {message.msg}')
             else:
@@ -75,7 +75,7 @@ class StructClient(Client):
                 break
 
             self.send_message(
-                C_CLIENT_CHAT(
+                M_CLIENT_CHAT(
                     msg=message
                 )
             )
@@ -128,13 +128,13 @@ class StructServer:
 
     def authenticate_user(self, reader, writer):
         writer.send(
-            C_WELCOME(
+            M_WELCOME(
                 time=time.time(),
                 msg=f'Players currently connected: {", ".join(self.player_map)}'
             )
         )
         writer.send(
-            C_SERVER_CHAT(
+            M_SERVER_CHAT(
                 time=time.time(),
                 source='server',
                 msg=f'Send me your username'
@@ -145,12 +145,12 @@ class StructServer:
         if not username_msg:
             return
 
-        assert username_msg.command_id == C_CLIENT_CHAT.command_id
+        assert username_msg.message_id == M_CLIENT_CHAT.message_id
         username = username_msg.msg
 
         if username in self.player_map:
             writer.send(
-                C_SERVER_CHAT(
+                M_SERVER_CHAT(
                     time=time.time(),
                     source='server',
                     msg=f'Username taken'
@@ -178,7 +178,7 @@ class StructServer:
     def player_connected(self, username):
         self.forward_message(
             username,
-            C_CONNECT(
+            M_CONNECT(
                 user=username
             )
         )
@@ -186,18 +186,18 @@ class StructServer:
     def player_disconnected(self, username):
         self.forward_message(
             username,
-            C_DISCONNECT(
+            M_DISCONNECT(
                 user=username
             )
         )
 
     def player_message(self, username, message):
-        if message.command_id != C_CLIENT_CHAT.command_id:
+        if message.message_id != M_CLIENT_CHAT.message_id:
             print(f'Unexpected message: {message}')
 
         self.forward_message(
             username,
-            C_SERVER_CHAT(
+            M_SERVER_CHAT(
                 time=time.time(),
                 source=username,
                 msg=message.msg

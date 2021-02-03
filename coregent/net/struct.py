@@ -81,19 +81,19 @@ P_UNICODE_LONG = UnicodeParameter('L')
 P_UNICODE_2LONG = UnicodeParameter('Q')
 
 
-class Command:
-    def __init__(self, command_id: int, command_name: str, **parameters: Parameter):
-        self.command_id = command_id
-        self.command_name = command_name
+class Message:
+    def __init__(self, message_id: int, message_name: str, **parameters: Parameter):
+        self.message_id = message_id
+        self.message_name = message_name
         self.parameters = parameters
 
         self.struct_format = self.compile_parameters()
 
-        fields = ['command_id'] + list(self.parameters)
-        self.factory = collections.namedtuple(self.command_name, fields)
+        fields = ['message_id'] + list(self.parameters)
+        self.factory = collections.namedtuple(self.message_name, fields)
 
     def __call__(self, **kw):
-        return self.factory(self.command_id, **kw)
+        return self.factory(self.message_id, **kw)
 
     def compile_parameters(self):
         _f = ''.join(p.struct_format for p in self.parameters.values())
@@ -114,7 +114,7 @@ class Command:
         initial_bytes = reader.get_bytes(self.struct_format.size)
         struct_args = list(self.struct_format.unpack(initial_bytes))
         return self.factory(
-            self.command_id,
+            self.message_id,
             *(
                 p.parse(reader, struct_args)
                 for p in self.parameters.values()
@@ -123,22 +123,22 @@ class Command:
 
 
 class StructReader(SocketReader):
-    def __init__(self, sock: socket.socket, commands: list[Command], max_id: Optional[int] = None):
+    def __init__(self, sock: socket.socket, message_types: list[Message], max_id: Optional[int] = None):
         self.sock = sock
-        self.commands = {c.command_id: c for c in commands}
-        max_id = max_id or max(self.commands)
+        self.message_types = {m.message_id: m for m in message_types}
+        max_id = max_id or max(self.message_types)
         self.id_format = struct.Struct(get_id_code(max_id))
 
     @classmethod
-    def get_factory(cls, commands, max_id=None):
+    def get_factory(cls, message_types, max_id=None):
         def get_struct_reader(sock):
-            return cls(sock, commands, max_id)
+            return cls(sock, message_types, max_id)
 
         return get_struct_reader
 
     def __next__(self):
-        command_id, = self.id_format.unpack(self.get_bytes(self.id_format.size))
-        return self.commands[command_id].deserialize(self)
+        message_id, = self.id_format.unpack(self.get_bytes(self.id_format.size))
+        return self.message_types[message_id].deserialize(self)
 
     def get_bytes(self, total: int, chunk: int = 4096):
         received = 0
@@ -158,23 +158,23 @@ class StructReader(SocketReader):
 
 
 class StructWriter(SocketWriter):
-    def __init__(self, sock: socket.socket, commands: list[Command], max_id: Optional[int] = None):
+    def __init__(self, sock: socket.socket, message_types: list[Message], max_id: Optional[int] = None):
         self.sock = sock
-        self.commands = {c.command_id: c for c in commands}
-        max_id = max_id or max(self.commands)
+        self.message_types = {m.message_id: m for m in message_types}
+        max_id = max_id or max(self.message_types)
         self.id_format = struct.Struct(get_id_code(max_id))
 
     @classmethod
-    def get_factory(cls, commands, max_id=None):
+    def get_factory(cls, message_types, max_id=None):
         def get_struct_writer(sock):
-            return cls(sock, commands, max_id)
+            return cls(sock, message_types, max_id)
 
         return get_struct_writer
 
     def send(self, message):
-        command_id = message[0]
-        packed = self.commands[command_id].serialize(message)
-        self.sock.sendall(self.id_format.pack(command_id))
+        message_id = message[0]
+        packed = self.message_types[message_id].serialize(message)
+        self.sock.sendall(self.id_format.pack(message_id))
         self.sock.sendall(packed)
 
     def close(self):
