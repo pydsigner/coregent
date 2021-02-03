@@ -13,26 +13,26 @@ from coregent.net.core import get_server_socket
 
 M_CONNECT = sn.Message(
     1, 'Connect',
-    user=sn.P_UNICODE_BYTE
+    user=sn.P_UNICODE8
 )
 M_WELCOME = sn.Message(
     2, 'Welcome',
     time=sn.P_DOUBLE,
-    msg=sn.P_UNICODE_LONG
+    msg=sn.P_UNICODE32
 )
 M_DISCONNECT = sn.Message(
     3, 'Disconnect',
-    user=sn.P_UNICODE_BYTE
+    user=sn.P_UNICODE8
 )
 M_CLIENT_CHAT = sn.Message(
     1000, 'ClientChat',
-    msg=sn.P_UNICODE_LONG
+    msg=sn.P_UNICODE32
 )
 M_SERVER_CHAT = sn.Message(
     1001, 'ServerChat',
     time=sn.P_DOUBLE,
-    source=sn.P_UNICODE_BYTE,
-    msg=sn.P_UNICODE_LONG
+    source=sn.P_UNICODE8,
+    msg=sn.P_UNICODE32
 )
 MESSAGE_TYPES = [M_CONNECT, M_WELCOME, M_DISCONNECT, M_CLIENT_CHAT, M_SERVER_CHAT]
 

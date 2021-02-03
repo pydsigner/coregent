@@ -59,26 +59,23 @@ class UnicodeParameter(Parameter):
 
 P_BOOL = Parameter('?')
 
-P_BYTE = Parameter('b')
-P_UBYTE = Parameter('B')
-P_SHORT = Parameter('h')
-P_USHORT = Parameter('H')
-P_INT = Parameter('i')
-P_UINT = Parameter('I')
-P_LONG = Parameter('l')
-P_ULONG = Parameter('L')
-P_2LONG = Parameter('q')
-P_U2LONG = Parameter('Q')
+P_INT8 = Parameter('b')
+P_UINT8 = Parameter('B')
+P_INT16 = Parameter('h')
+P_UINT16 = Parameter('H')
+P_INT32 = Parameter('l')
+P_UINT32 = Parameter('L')
+P_INT64 = Parameter('q')
+P_UINT64 = Parameter('Q')
 
-P_HALFFLOAT = Parameter('e')
-P_FLOAT = Parameter('f')
-P_DOUBLE = Parameter('d')
+P_FLOAT16 = Parameter('e')
+P_FLOAT32 = Parameter('f')
+P_DOUBLE = P_FLOAT64 = Parameter('d')
 
-P_UNICODE_BYTE = UnicodeParameter('B')
-P_UNICODE_SHORT = UnicodeParameter('H')
-P_UNICODE_INT = UnicodeParameter('I')
-P_UNICODE_LONG = UnicodeParameter('L')
-P_UNICODE_2LONG = UnicodeParameter('Q')
+P_UNICODE8 = UnicodeParameter('B')
+P_UNICODE16 = UnicodeParameter('H')
+P_UNICODE32 = UnicodeParameter('L')
+P_UNICODE64 = UnicodeParameter('Q')
 
 
 class Message:
