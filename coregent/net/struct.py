@@ -44,16 +44,28 @@ class MultiParameter(Parameter):
 
 
 class UnicodeParameter(Parameter):
-    def __init__(self, code: str):
+    def __init__(self, code: str, max_length=0):
         super().__init__(code)
+
+        size_bits = 8 * struct.calcsize(self.struct_format)
+        self.max_length = 2**size_bits - 1
+        if max_length > self.max_length:
+            raise ValueError(f'Targeted maximum string length ({max_length}) greater than permitted by selected format ({self.max_length})')
+        if max_length:
+            self.max_length = max_length
 
     def parse(self, reader, parsed_values):
         size = super().parse(reader, parsed_values)
+        if size > self.max_length:
+            raise ValueError(f'String length received ({size}) exceeds maximum for this parameter ({self.max_length})')
         return reader.get_bytes(size).decode()
 
     def pack(self, value):
         value = value.encode()
-        return (len(value),), [value]
+        size = len(value)
+        if size > self.max_length:
+            raise ValueError(f'String length supplied ({size}) exceeds maximum for this parameter ({self.max_length})')
+        return (size,), [value]
 
 
 P_BOOL = Parameter('?')
