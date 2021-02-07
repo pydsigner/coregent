@@ -39,7 +39,7 @@ class MultiParameter(Parameter):
     def parse(self, reader, parsed_values):
         return tuple(itertools.islice(parsed_values, self.size))
 
-    def pack(self, value):
+    def pack(self, value: tuple):
         return value, []
 
 
@@ -54,13 +54,13 @@ class UnicodeParameter(Parameter):
         if max_length:
             self.max_length = max_length
 
-    def parse(self, reader, parsed_values):
+    def parse(self, reader, parsed_values) -> str:
         size = super().parse(reader, parsed_values)
         if size > self.max_length:
             raise ValueError(f'String length received ({size}) exceeds maximum for this parameter ({self.max_length})')
         return reader.get_bytes(size).decode()
 
-    def pack(self, value):
+    def pack(self, value: str):
         value = value.encode()
         size = len(value)
         if size > self.max_length:
