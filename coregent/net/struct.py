@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import decimal
 import itertools
 import socket
 import struct
@@ -68,6 +69,14 @@ class UnicodeParameter(Parameter):
         return (size,), [value]
 
 
+class DecimalParameter(UnicodeParameter):
+    def parse(self, reader, parsed_values):
+        return decimal.Decimal(super().parse(reader, parsed_values))
+
+    def pack(self, value: decimal.Decimal):
+        return super().pack(str(value))
+
+
 P_BOOL = Parameter('?')
 
 P_INT8 = Parameter('b')
@@ -87,6 +96,9 @@ P_UNICODE8 = UnicodeParameter('B')
 P_UNICODE16 = UnicodeParameter('H')
 P_UNICODE32 = UnicodeParameter('L')
 P_UNICODE64 = UnicodeParameter('Q')
+
+P_DECIMAL8 = DecimalParameter('B')
+P_DECIMAL16 = DecimalParameter('H')
 
 
 class Message:
